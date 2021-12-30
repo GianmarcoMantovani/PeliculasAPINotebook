@@ -38,18 +38,18 @@ namespace PeliculasAPI.Controllers
         /// obtener la lista de actores
         /// </summary>
         /// <returns></returns>
-        //[HttpGet]
-        //[AllowAnonymous]
-        //public async Task<ActionResult<List<ActorDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
-        //{
-        //    return await Get<Actor, ActorDTO>(paginacionDTO);
-        //}
+        [HttpGet("/paginacion")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<ActorDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
+        {
+            return await Get<Actor, ActorDTO>(paginacionDTO);
+        }
 
         /// <summary>
         /// obtener actores
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("/filtro")]
         [AllowAnonymous]
         public async Task<ActionResult<List<ActorDTO>>> Get([FromQuery] FiltroDTO filtroDTO)
         {

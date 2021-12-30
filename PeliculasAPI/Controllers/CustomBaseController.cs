@@ -9,6 +9,7 @@ using PeliculasAPI.Entidades;
 using PeliculasAPI.Helpers;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Reflection;
 
 namespace PeliculasAPI.Controllers
 {
@@ -39,17 +40,21 @@ namespace PeliculasAPI.Controllers
             {
                 var filtros = JsonConvert.DeserializeObject<JObject>(filtroDTO.Filtro);
                 var objeto = new TEntity();
-
+               
                 foreach (var f in filtros)
                 {
-                    if (objeto.GetType().GetProperty(f.Key).PropertyType == typeof(string))
+                    var llaves = f.Key.ToString().Split('.');
+                    var nestedProperty = GetNestedProperty(objeto, llaves);
+
+                    if (nestedProperty != null)
                     {
-                        queryable = queryable.Where($"{f.Key}.Contains(@0)", f.Value.ToString());
+                        var query = nestedProperty.PropertyType == typeof(string) ?
+                            $"{f.Key}.Contains(@0)" :
+                            $"{f.Key} == @0";
+
+                        queryable = queryable.Where(query, f.Value.ToString());
                     }
-                    else
-                    {
-                        queryable = queryable.Where($"{f.Key} == @0", f.Value.ToString());
-                    }
+
                 }
             }
 
@@ -171,6 +176,18 @@ namespace PeliculasAPI.Controllers
             await context.SaveChangesAsync();
 
             return NoContent();
+        }
+        private PropertyInfo GetNestedProperty(object objeto, string[] properties)
+        {
+            PropertyInfo property = null;
+            foreach (var propertyName in properties)
+            {
+                if (objeto == null) return null;
+                property = objeto.GetType().GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                objeto = property.GetValue(objeto, null);
+            }
+
+            return property;
         }
 
     }
